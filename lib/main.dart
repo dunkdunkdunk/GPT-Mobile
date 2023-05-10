@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:speech_to_text/speech_to_text.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -8,33 +9,97 @@ void main() {
   ));
 }
 
-class FirstRoute extends StatelessWidget {
+class FirstRoute extends StatefulWidget {
   const FirstRoute();
+
+  _FirstRoute createState() => _FirstRoute();
+}
+
+class _FirstRoute extends State<FirstRoute> {
+  String _text;
+
+  final SpeechToText _speech = SpeechToText();
+  Future<void> _listen() async {
+    if (!_speech.isAvailable) {
+      print('Speech recognition is not available');
+      return;
+    }
+
+    await _speech.listen(
+      onResult: (result) {
+        setState(() {
+          _text = result.recognizedWords;
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: Scaffold(
-      appBar: AppBar(
-        title: Row(children: [
-          Text(
-            "GPT-Mobile Clone (demo)",
+      home: Scaffold(
+          appBar: AppBar(
+            title: Row(children: [
+              Text(
+                "GPT-Mobile Clone (demo)",
+              ),
+              Spacer(),
+              IconButton(
+                  icon: Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => SecondRoute()));
+                  }),
+            ]),
+            backgroundColor: Colors.green[700],
+            shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.vertical(bottom: Radius.circular(8))),
+            toolbarHeight: 50,
           ),
-          Spacer(),
-          IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => SecondRoute()));
-              }),
-        ]),
-        backgroundColor: Colors.green[700],
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(8))),
-        toolbarHeight: 50,
-      ),
-      backgroundColor: Colors.grey[900],
-    ));
+          backgroundColor: Colors.grey[900],
+          body: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Column(children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: "Ask anything!",
+                    hintStyle: TextStyle(color: Colors.white),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.0),
+                ElevatedButton.icon(
+                  onPressed: _listen,
+                  icon: Icon(Icons.mic),
+                  label: Text(''),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(24.0),
+                      ),
+                    ),
+                    side: BorderSide(width: 2.0, color: Colors.white),
+                    primary: Colors.green[700],
+                    onPrimary: Colors.white,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 120, vertical: 8.0),
+                    elevation: 4.0,
+                  ),
+                ),
+              ]))),
+    );
   }
 }
 
@@ -121,8 +186,8 @@ class _SecondRouteState extends State<SecondRoute> {
                 "Submit",
               ),
               style: ElevatedButton.styleFrom(
-                primary: Colors.white,
-                onPrimary: Colors.green[700],
+                primary: Colors.green[700],
+                onPrimary: Colors.white,
               ),
             ),
             if (_loading)
